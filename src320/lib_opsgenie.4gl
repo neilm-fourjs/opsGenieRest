@@ -7,7 +7,9 @@ PUBLIC TYPE opsgenie RECORD
 		api_key_fileName STRING,
 		api_main_key STRING,
 		api_group_key STRING,
-		data STRING
+		data STRING,
+		call_status SMALLINT,
+		reply STRING
 	END RECORD
 
 { Alert Fields
@@ -64,7 +66,7 @@ END FUNCTION
 -- @param l_alias The alias field
 -- @param l_desc The Description text for the alert
 -- @param l_pri The Priority ( P1 - P5 )
-FUNCTION (this opsgenie) jsonAlert( l_msg STRING, l_alias STRING, l_desc STRING,l_pri STRING) RETURNS STRING
+FUNCTION (this opsgenie) sendAlert( l_msg STRING, l_alias STRING, l_desc STRING,l_pri STRING)
 	DEFINE l_o util.JSONObject
 
 	LET l_o = util.JSONObject.create()
@@ -74,15 +76,18 @@ FUNCTION (this opsgenie) jsonAlert( l_msg STRING, l_alias STRING, l_desc STRING,
 	CALL l_o.put("source", "GeneroTest")
 	CALL l_o.put("priority", l_pri)
 
-	RETURN l_o.toString()
+	LET this.data = l_o.toString()
+
+	DISPLAY "Data:", this.data
+
+	CALL this.restCall("v2/alerts", "G")
 END FUNCTION
 --------------------------------------------------------------------------------
 -- Make REST Call to the opsGenie rest server
 --
 -- @param l_url The rest url excluding the hostname part
--- @param l_data The data to POST - if NULL assumes doing a GET
 -- @param l_keyType The API Key "M" or "G"
-FUNCTION (this opsgenie) restCall(l_url STRING, l_data STRING, l_keyType CHAR(1)) RETURNS (INT,STRING)
+FUNCTION (this opsgenie) restCall(l_url STRING, l_keyType CHAR(1))
 	DEFINE l_req com.HttpRequest
 	DEFINE l_resp com.HttpResponse
 	DEFINE l_status SMALLINT
@@ -92,7 +97,7 @@ FUNCTION (this opsgenie) restCall(l_url STRING, l_data STRING, l_keyType CHAR(1)
 
 	DISPLAY SFMT("Calling: %1",this.service_host||l_url)
 	LET l_req = com.HttpRequest.Create(this.service_host||l_url)
-	IF l_data.getLength() > 1 THEN
+	IF this.data.getLength() > 1 THEN
 		CALL l_req.setMethod("POST")
 		CALL l_req.setHeader("Content-Type", "application/json")
 	ELSE
@@ -102,15 +107,14 @@ FUNCTION (this opsgenie) restCall(l_url STRING, l_data STRING, l_keyType CHAR(1)
 	CALL l_req.setHeader("Accept", "application/json")
 	CALL l_req.setHeader("Authorization", "GenieKey "||l_apiKey)
 
-	IF l_data.getLength() > 1 THEN
-		CALL l_req.doTextRequest( l_data )
+	IF this.data.getLength() > 1 THEN
+		CALL l_req.doTextRequest( this.data )
 	ELSE
 		CALL l_req.doRequest()
 	END IF
 
 	LET l_resp = l_req.getResponse()
-	LET l_status = l_resp.getStatusCode()
-
-	RETURN l_status, l_resp.getTextResponse()
+	LET this.reply = l_resp.getTextResponse()
+	LET this.call_status = l_resp.getStatusCode()
 END FUNCTION
 --------------------------------------------------------------------------------
