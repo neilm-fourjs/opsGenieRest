@@ -8,12 +8,13 @@ DEFINE m_apiMainKey STRING
 MAIN
 
 	CALL lib_opsgenie.getAPIkeys("../keys.json") RETURNING m_apiGroupKey, m_apiMainKey
-	DISPLAY "Group Key:",m_apiGroupKey," Main Key:",m_apiMainKey
-
-	--CALL listTeams()
+	DISPLAY "Group API Key: ",m_apiGroupKey
+	DISPLAY "Main API Key: ",m_apiMainKey
 
 	DISPLAY ""
+	CALL listTeams()
 
+	DISPLAY ""
 	CALL sendAlert()
 
 END MAIN
@@ -74,7 +75,7 @@ FUNCTION sendAlert()
 	DISPLAY ""
 	LET l_url = "v2/alerts"
 	CALL lib_opsgenie.restCall(l_url, l_json, m_apiGroupKey) RETURNING l_stat, l_json
-	IF l_stat = 200 THEN
+	IF l_stat = 202 THEN
 		CALL util.JSON.parse(l_json, l_reply)
 		DISPLAY SFMT("Result: %1", l_reply.result)
 		DISPLAY SFMT("Request took %1, Id: %2",l_reply.took,l_reply.requestId)
