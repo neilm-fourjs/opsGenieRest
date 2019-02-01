@@ -4,7 +4,9 @@ IMPORT com
 
 CONSTANT c_srv_host = "https://api.opsgenie.com/"
 
-{ Alert Fields
+{ 
+https://docs.opsgenie.com/docs/alert-api
+Alert Fields
 Field - Required - Description - Length
 message: true - Message of the alert 130 characters
 alias: false - Client-defined identifier of the alert, that is also the key element of Alert De-Duplication.  512 characters
