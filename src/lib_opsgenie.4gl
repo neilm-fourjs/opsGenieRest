@@ -34,7 +34,7 @@ FUNCTION getAPIkeys(l_fileName STRING)
 	TRY
 		CALL jsonText.readFile(l_fileName)
 	CATCH
-		DISPLAY "Failed to get API keys file!"
+		DISPLAY SFMT("Failed to get API keys file '%1'!", l_fileName)
 		EXIT PROGRAM
 	END TRY
 	TRY

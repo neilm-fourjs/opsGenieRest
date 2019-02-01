@@ -64,7 +64,6 @@
   <LanguageList version="1.0"/>
   <PlatformList version="1.0"/>
   <Group label="Group" language="Genero">
-    <Library binaryName="Databases" id="1986" label="Databases"/>
     <Library binaryName="Library" dependencies="1986" id="14000" label="Library">
       <File filePath="src/lib_opsgenie.4gl"/>
     </Library>
